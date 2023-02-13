@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
                 @UniqueConstraint(columnNames = {"title"})
         }
 )
+@NamedQuery(name="get_all_posts", query="select p from Post p")
 public class Post {
 
     @Id
