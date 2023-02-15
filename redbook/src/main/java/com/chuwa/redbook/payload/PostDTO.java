@@ -1,10 +1,13 @@
 package com.chuwa.redbook.payload;
 
+import java.util.Set;
+
 public class PostDTO {
     private Long id;
     private String title;
     private String description;
     private String content;
+    private Set<CommentDto> comments;
 
     public PostDTO() {
     }
@@ -39,6 +42,14 @@ public class PostDTO {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public Set<CommentDto> getComments() {
+        return comments;
+    }
+
+    public void setComments(Set<CommentDto> comments) {
+        this.comments = comments;
     }
 
     @Override
