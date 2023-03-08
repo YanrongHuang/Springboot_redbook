@@ -32,7 +32,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public CommentDto createComment(long postId, CommentDto commentDto) {
-        Comment comment = modelMapper.map(commentDto,Comment.class);
+        Comment comment = modelMapper.map(commentDto, Comment.class);
         // retrieve post entity by id
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post", "id", postId));
@@ -42,7 +42,7 @@ public class CommentServiceImpl implements CommentService {
         // comment entity to DB
         Comment savedComment = commentRepository.save(comment);
 
-        return  modelMapper.map(savedComment, CommentDto.class);
+        return modelMapper.map(savedComment, CommentDto.class);
     }
 
     @Override

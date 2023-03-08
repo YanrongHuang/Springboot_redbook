@@ -29,22 +29,61 @@ public class PostServiceImpl implements PostService {
     private ModelMapper modelMapper;
 
     @Override
-    public PostDTO createPost(PostDTO postDTO) {
-        //1. convert postDTO to Post
-        Post post = modelMapper.map(postDTO, Post.class);
+    public PostDTO createPost(PostDTO postDto) {
 
-        //2. save Post to DB use repository
+        // covert DTO to Entity
+        Post post = modelMapper.map(postDto, Post.class);
+
+        // 调用Dao的save 方法，将entity的数据存储到数据库MySQL
+        // save()会返回存储在数据库中的数据
         Post savedPost = postRepository.save(post);
 
-        //3. convert Post back to PostDTO
+        // 将save() 返回的数据转换成controller/前端 需要的数据，然后return给controller
+//        PostDto postResponse = mapToDTO(savedPost);
+
         return modelMapper.map(savedPost, PostDTO.class);
     }
 
+    /**
+     * 此处练习了lambda， stream API
+     * @return
+     */
     @Override
     public List<PostDTO> getAllPost() {
         List<Post> posts = postRepository.findAll();
-        List<PostDTO> postDTOS = posts.stream().map(post -> modelMapper.map(post, PostDTO.class)).collect(Collectors.toList());;
-        return postDTOS;
+        List<PostDTO> postDtos = posts.stream().map(post -> modelMapper.map(post, PostDTO.class)).collect(Collectors.toList());
+        return postDtos;
+    }
+
+    /**
+     * 此处顺便练习Optional
+     * @param id
+     * @return
+     */
+    @Override
+    public PostDTO getPostById(long id) {
+        Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post", "id", id));
+
+        return modelMapper.map(post, PostDTO.class);
+    }
+
+    @Override
+    public PostDTO updatePost(PostDTO postDto, long id) {
+        //  Question, why do we need to find it out firstly?
+        Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post", "id", id));
+        post.setTitle(postDto.getTitle());
+        post.setDescription(postDto.getDescription());
+        post.setContent(postDto.getContent());
+
+        Post updatePost = postRepository.save(post);
+        return modelMapper.map(updatePost, PostDTO.class);
+    }
+
+    @Override
+    public void deletePostById(long id) {
+        //  Question, why do we need to find it out firstly?
+        Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post", "id", id));
+        postRepository.delete(post);
     }
 
     @Override
@@ -56,13 +95,11 @@ public class PostServiceImpl implements PostService {
         // create pageable instance
 
         PageRequest pageRequest = PageRequest.of(pageNo, pageSize, sort);
-//        PageRequest pageRequest = PageRequest.of(pageNo, pageSize, Sort.by(sortBy));
-//        PageRequest pageRequest = PageRequest.of(pageNo, pageSize, Sort.by(sortBy).descending());
         Page<Post> pagePosts = postRepository.findAll(pageRequest);
 
         // get content for page abject
         List<Post> posts = pagePosts.getContent();
-        List<PostDTO> postDtos =  posts.stream().map(post -> modelMapper.map(post, PostDTO.class)).collect(Collectors.toList());
+        List<PostDTO> postDtos = posts.stream().map(post -> modelMapper.map(post, PostDTO.class)).collect(Collectors.toList());
 
         PostResponse postResponse = new PostResponse();
         postResponse.setContent(postDtos);
@@ -72,28 +109,5 @@ public class PostServiceImpl implements PostService {
         postResponse.setTotalPages(pagePosts.getTotalPages());
         postResponse.setLast(pagePosts.isLast());
         return postResponse;
-    }
-
-    @Override
-    public PostDTO getPostById(long id) {
-        Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post", "id", id));
-        return modelMapper.map(post, PostDTO.class);
-    }
-
-    @Override
-    public PostDTO updatePost(PostDTO postDTO, long id) {
-        Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post", "id", id));
-        post.setTitle(postDTO.getTitle());
-        post.setDescription(postDTO.getDescription());
-        post.setContent(postDTO.getContent());
-
-        Post updatedPost = postRepository.save(post);
-        return modelMapper.map(updatedPost, PostDTO.class);
-    }
-
-    @Override
-    public void deletePostById(long id) {
-        Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post", "id", id));
-        postRepository.delete(post);
     }
 }
